@@ -3,8 +3,8 @@ import { PaymentsService } from '../services/payments.service';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { MpesaService } from '../services/mpesa.service';
 // Note: `Order` is required dynamically where needed to avoid pulling sibling project files into tsc.
-import { RolesGuard } from '../../auth/src/extra/roles.guard';
-import { Roles } from '../../auth/src/extra/roles.decorator';
+import { RolesGuard } from '../auth/src/extra/roles.guard';
+import { Roles } from '../auth/src/extra/roles.decorator';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
 
 /**
