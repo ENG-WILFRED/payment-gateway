@@ -21,14 +21,12 @@ export class PaymentsService {
       amount: createDto.amount,
       status: createDto.status ?? 'pending',
       raw: createDto.raw ?? {},
-      orderId: createDto.orderId,
+      providerMetadata: createDto.providerMetadata,
+      referenceId: createDto.referenceId,
       userId: createDto.userId,
-      hotelId: createDto.hotelId,
-      initiatedCheckoutRequestId: (createDto as any).initiatedCheckoutRequestId,
-      initiatedMerchantRequestId: (createDto as any).initiatedMerchantRequestId,
+      merchantId: createDto.merchantId,
     };
 
-    
     const p = await this.paymentModel.create(payload as any);
 
     return p;
@@ -39,10 +37,10 @@ export class PaymentsService {
   }
 
   /**
-   * Query payments with filters and pagination. Includes User and Order relations.
+   * Query payments with filters and pagination.
    */
   async queryPayments(opts: {
-    hotelId?: string;
+    merchantId?: string;
     status?: string;
     provider?: string;
     userId?: string;
@@ -51,9 +49,9 @@ export class PaymentsService {
     page?: number;
     limit?: number;
   }) {
-    const { hotelId, status, provider, userId, start, end, page = 1, limit = 25 } = opts || ({} as any);
+    const { merchantId, status, provider, userId, start, end, page = 1, limit = 25 } = opts || ({} as any);
     const where: any = {};
-    if (hotelId) where.hotelId = hotelId;
+    if (merchantId) where.merchantId = merchantId;
     if (status) where.status = status;
     if (provider) where.provider = provider;
     if (userId) where.userId = userId;
@@ -66,10 +64,6 @@ export class PaymentsService {
     const offset = Math.max(0, page - 1) * limit;
     const result = await this.paymentModel.findAndCountAll({
       where,
-      include: [
-        { association: 'user' },
-        { association: 'order' },
-      ],
       order: [['createdAt', 'DESC']],
       limit,
       offset,
@@ -84,27 +78,27 @@ export class PaymentsService {
   }
 
   // Summary counts and totals
-  async summaryCounts(hotelId?: string) {
+  async summaryCounts(merchantId?: string) {
     const wherePending: any = { status: 'pending' };
     const whereCompleted: any = { status: 'completed' };
     const whereFailed: any = { status: 'failed' };
-    if (hotelId) {
-      wherePending.hotelId = hotelId;
-      whereCompleted.hotelId = hotelId;
-      whereFailed.hotelId = hotelId;
+    if (merchantId) {
+      wherePending.merchantId = merchantId;
+      whereCompleted.merchantId = merchantId;
+      whereFailed.merchantId = merchantId;
     }
 
     const totalPending = await this.paymentModel.count({ where: wherePending } as any);
     const totalCompleted = await this.paymentModel.count({ where: whereCompleted } as any);
     const totalFailed = await this.paymentModel.count({ where: whereFailed } as any);
 
-    // total revenue (sum of amounts for completed) scoped to hotel if provided
+    // total revenue (sum of amounts for completed) scoped to merchant if provided
     const sequelize = (this.paymentModel as any).sequelize;
     let sql = `SELECT COALESCE(SUM(CAST(amount AS numeric)),0)::text AS total_revenue FROM payments WHERE status = 'completed'`;
     const binds: any[] = [];
-    if (hotelId) {
-      binds.push(hotelId);
-      sql += ` AND "hotelId" = $${binds.length}`;
+    if (merchantId) {
+      binds.push(merchantId);
+      sql += ` AND "merchantId" = $${binds.length}`;
     }
     const [[{ total_revenue }]] = await sequelize.query(sql, { bind: binds });
     return { totalPending, totalCompleted, totalFailed, totalRevenue: total_revenue };
@@ -230,21 +224,31 @@ export class PaymentsService {
       }
     }
 
-    // If payment succeeded, and it's linked to an order, update that order to 'paid'
-    try {
-      if (status === 'completed' && saved?.orderId) {
-        try {
-          const OrderDyn = require('../../orders/entities/order.entity').Order as any;
-          const [count] = await OrderDyn.update({ status: 'paid' } as any, { where: { id: saved.orderId } as any });
-          this.logger.log(`Marked ${count} order(s) as paid for orderId=${saved.orderId}`);
-        } catch (e) {
-          this.logger.error('Failed to update order status after payment', e as any);
-        }
-      }
-    } catch (e) {
-      this.logger.error('Failed to update order status after payment', e as any);
-    }
-
+    // Payment state updated successfully
     return saved;
+  }
+
+  /**
+   * Generic provider callback recorder. Creates or updates a payment record
+   * based on incoming provider webhook/payload. Keeps behavior simple so
+   * provider-specific services can call this after verifying payloads.
+   */
+  async recordPaymentFromProvider(provider: string, payload: any) {
+    this.logger.debug('Recording payment from provider', { provider, payload });
+    try {
+      const createDto: CreatePaymentDto = {
+        provider,
+        providerTransactionId: payload?.id ?? payload?.transactionId ?? payload?.resource?.id ?? undefined,
+        amount: payload?.amount ?? payload?.value ?? payload?.resource?.amount?.value ?? String(payload?.amount ?? '0'),
+        status: payload?.status ?? (payload?.resource?.status ?? 'pending'),
+        raw: payload,
+      };
+
+      const p = await this.create(createDto);
+      return p;
+    } catch (e) {
+      this.logger.error('Failed to record generic provider payment', e as any);
+      throw e;
+    }
   }
 }

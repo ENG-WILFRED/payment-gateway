@@ -38,44 +38,31 @@ __decorate([
     __metadata("design:type", String)
 ], CreatePaymentDto.prototype, "status", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ type: 'object', description: 'Raw provider payload for debugging/reconciliation', additionalProperties: true }),
+    (0, swagger_1.ApiPropertyOptional)({ type: 'object', description: 'Raw provider response/payload for audit and reconciliation', additionalProperties: true }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Object)
 ], CreatePaymentDto.prototype, "raw", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ format: 'uuid', description: 'Associated order id' }),
+    (0, swagger_1.ApiPropertyOptional)({ type: 'object', description: 'Provider-specific tracking metadata (e.g., checkoutId, requestId, session id)', additionalProperties: true }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", Object)
+], CreatePaymentDto.prototype, "providerMetadata", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Merchant reference id (e.g. order id, invoice id, checkout session id)' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreatePaymentDto.prototype, "orderId", void 0);
+], CreatePaymentDto.prototype, "referenceId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Merchant identifier for multi-tenant scoping (SaaS/platform scenarios)' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreatePaymentDto.prototype, "merchantId", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ format: 'uuid', description: 'User who initiated the payment (if authenticated)' }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], CreatePaymentDto.prototype, "userId", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({ format: 'uuid', description: 'Hotel id the payment is scoped to (useful for multi-tenant reporting)' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsUUID)(),
-    __metadata("design:type", String)
-], CreatePaymentDto.prototype, "hotelId", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({ format: 'uuid', description: 'Cart id associated with the payment (optional)' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsUUID)(),
-    __metadata("design:type", String)
-], CreatePaymentDto.prototype, "cartId", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({ description: 'M-Pesa CheckoutRequestID (for reconciliation)' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], CreatePaymentDto.prototype, "initiatedCheckoutRequestId", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({ description: 'M-Pesa MerchantRequestID (for reconciliation)' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], CreatePaymentDto.prototype, "initiatedMerchantRequestId", void 0);
 //# sourceMappingURL=create-payment.dto.js.map

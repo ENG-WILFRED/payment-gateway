@@ -6,58 +6,52 @@ export class Payment extends Model<Payment> {
   declare id: string;
 
   @Column({ type: DataType.STRING, allowNull: false })
-  declare provider: string; // e.g. 'mpesa', 'stripe', 'cash'
+  declare provider: string; // payment provider identifier (e.g., 'mpesa', 'stripe', 'paypal', 'cash')
 
   @Column({ type: DataType.STRING })
-  declare providerTransactionId?: string; // external transaction id from provider
+  declare providerTransactionId?: string; // transaction id or order id assigned by provider
 
   @Column({ type: DataType.DECIMAL(12, 2), allowNull: false })
-  declare amount: string;
+  declare amount: string; // transaction amount
 
   @Column({ type: DataType.STRING, allowNull: false, defaultValue: 'pending' })
-  declare status: string; // pending | completed | failed | cancelled
-
-  @Column({ type: DataType.STRING })
-  declare paymentMethod?: string; // STK_PUSH, QR_CODE, CARD, CASH, etc.
+  declare status: string; // normalized status: pending | completed | failed | cancelled
 
   @Column({ type: DataType.JSONB })
-  declare raw: any; // raw payload from provider
+  declare raw?: any; // raw provider response/payload for audit and reconciliation
+
+  @Column({ type: DataType.JSONB })
+  declare providerMetadata?: any; // provider-specific tracking fields (e.g., checkoutId, requestId, etc.)
 
   @Column({ type: DataType.STRING, allowNull: true })
-  declare initiatedCheckoutRequestId?: string;
+  declare referenceId?: string; // merchant's internal reference id (e.g., order id, invoice id, session id)
 
   @Column({ type: DataType.STRING, allowNull: true })
-  declare initiatedMerchantRequestId?: string;
+  declare merchantId?: string; // merchant identifier (for multi-tenant platforms)
 
   @Column({ type: DataType.UUID, allowNull: true })
-  declare orderId?: string;
-
-  @Column({ type: DataType.UUID, allowNull: true })
-  declare userId?: string;
-
-  @Column({ type: DataType.UUID, allowNull: true })
-  declare hotelId?: string;
+  declare userId?: string; // user who initiated the payment transaction
 
   @Column({ type: DataType.STRING })
-  declare transactionDescription?: string; // user-friendly description of transaction
+  declare transactionDescription?: string; // human-readable transaction description
 
   @Column({ type: DataType.TEXT })
-  declare notes?: string; // admin notes or internal comments
+  declare notes?: string; // internal notes or reconciliation details
 
   @Column({ type: DataType.STRING })
-  declare customerPhone?: string; // customer phone for SMS/callback
+  declare customerPhone?: string; // customer contact phone
 
   @Column({ type: DataType.STRING })
-  declare customerEmail?: string; // customer email for receipt
+  declare customerEmail?: string; // customer contact email
 
   @Column({ type: DataType.DATE })
-  declare completedAt?: Date; // timestamp when payment completed
+  declare completedAt?: Date; // timestamp when payment transitioned to completed state
 
   @Column({ type: DataType.INTEGER, defaultValue: 0 })
-  declare retryCount?: number; // number of retry attempts
+  declare retryCount?: number; // number of failed attempts before success
 
   @Column({ type: DataType.DATE })
-  declare nextRetryAt?: Date; // when to retry next (for failed payments)
+  declare nextRetryAt?: Date; // scheduled time for next retry attempt (if applicable)
 
   @CreatedAt
   declare createdAt: Date;

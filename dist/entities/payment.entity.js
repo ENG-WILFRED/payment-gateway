@@ -35,33 +35,25 @@ __decorate([
     __metadata("design:type", String)
 ], Payment.prototype, "status", void 0);
 __decorate([
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING }),
-    __metadata("design:type", String)
-], Payment.prototype, "paymentMethod", void 0);
-__decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.JSONB }),
     __metadata("design:type", Object)
 ], Payment.prototype, "raw", void 0);
 __decorate([
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, allowNull: true }),
-    __metadata("design:type", String)
-], Payment.prototype, "initiatedCheckoutRequestId", void 0);
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.JSONB }),
+    __metadata("design:type", Object)
+], Payment.prototype, "providerMetadata", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, allowNull: true }),
     __metadata("design:type", String)
-], Payment.prototype, "initiatedMerchantRequestId", void 0);
+], Payment.prototype, "referenceId", void 0);
 __decorate([
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.UUID, allowNull: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, allowNull: true }),
     __metadata("design:type", String)
-], Payment.prototype, "orderId", void 0);
+], Payment.prototype, "merchantId", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.UUID, allowNull: true }),
     __metadata("design:type", String)
 ], Payment.prototype, "userId", void 0);
-__decorate([
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.UUID, allowNull: true }),
-    __metadata("design:type", String)
-], Payment.prototype, "hotelId", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING }),
     __metadata("design:type", String)

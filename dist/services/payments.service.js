@@ -32,11 +32,10 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
             amount: createDto.amount,
             status: (_a = createDto.status) !== null && _a !== void 0 ? _a : 'pending',
             raw: (_b = createDto.raw) !== null && _b !== void 0 ? _b : {},
-            orderId: createDto.orderId,
+            providerMetadata: createDto.providerMetadata,
+            referenceId: createDto.referenceId,
             userId: createDto.userId,
-            hotelId: createDto.hotelId,
-            initiatedCheckoutRequestId: createDto.initiatedCheckoutRequestId,
-            initiatedMerchantRequestId: createDto.initiatedMerchantRequestId,
+            merchantId: createDto.merchantId,
         };
         const p = await this.paymentModel.create(payload);
         return p;
@@ -45,10 +44,10 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
         return this.paymentModel.findByPk(id);
     }
     async queryPayments(opts) {
-        const { hotelId, status, provider, userId, start, end, page = 1, limit = 25 } = opts || {};
+        const { merchantId, status, provider, userId, start, end, page = 1, limit = 25 } = opts || {};
         const where = {};
-        if (hotelId)
-            where.hotelId = hotelId;
+        if (merchantId)
+            where.merchantId = merchantId;
         if (status)
             where.status = status;
         if (provider)
@@ -65,10 +64,6 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
         const offset = Math.max(0, page - 1) * limit;
         const result = await this.paymentModel.findAndCountAll({
             where,
-            include: [
-                { association: 'user' },
-                { association: 'order' },
-            ],
             order: [['createdAt', 'DESC']],
             limit,
             offset,
@@ -80,14 +75,14 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
             data: result.rows,
         };
     }
-    async summaryCounts(hotelId) {
+    async summaryCounts(merchantId) {
         const wherePending = { status: 'pending' };
         const whereCompleted = { status: 'completed' };
         const whereFailed = { status: 'failed' };
-        if (hotelId) {
-            wherePending.hotelId = hotelId;
-            whereCompleted.hotelId = hotelId;
-            whereFailed.hotelId = hotelId;
+        if (merchantId) {
+            wherePending.merchantId = merchantId;
+            whereCompleted.merchantId = merchantId;
+            whereFailed.merchantId = merchantId;
         }
         const totalPending = await this.paymentModel.count({ where: wherePending });
         const totalCompleted = await this.paymentModel.count({ where: whereCompleted });
@@ -95,9 +90,9 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
         const sequelize = this.paymentModel.sequelize;
         let sql = `SELECT COALESCE(SUM(CAST(amount AS numeric)),0)::text AS total_revenue FROM payments WHERE status = 'completed'`;
         const binds = [];
-        if (hotelId) {
-            binds.push(hotelId);
-            sql += ` AND "hotelId" = $${binds.length}`;
+        if (merchantId) {
+            binds.push(merchantId);
+            sql += ` AND "merchantId" = $${binds.length}`;
         }
         const [[{ total_revenue }]] = await sequelize.query(sql, { bind: binds });
         return { totalPending, totalCompleted, totalFailed, totalRevenue: total_revenue };
@@ -198,22 +193,26 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
                 this.logger.log('Created new payment from callback', { id: saved === null || saved === void 0 ? void 0 : saved.id, status });
             }
         }
+        return saved;
+    }
+    async recordPaymentFromProvider(provider, payload) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+        this.logger.debug('Recording payment from provider', { provider, payload });
         try {
-            if (status === 'completed' && (saved === null || saved === void 0 ? void 0 : saved.orderId)) {
-                try {
-                    const OrderDyn = require('../../orders/entities/order.entity').Order;
-                    const [count] = await OrderDyn.update({ status: 'paid' }, { where: { id: saved.orderId } });
-                    this.logger.log(`Marked ${count} order(s) as paid for orderId=${saved.orderId}`);
-                }
-                catch (e) {
-                    this.logger.error('Failed to update order status after payment', e);
-                }
-            }
+            const createDto = {
+                provider,
+                providerTransactionId: (_d = (_b = (_a = payload === null || payload === void 0 ? void 0 : payload.id) !== null && _a !== void 0 ? _a : payload === null || payload === void 0 ? void 0 : payload.transactionId) !== null && _b !== void 0 ? _b : (_c = payload === null || payload === void 0 ? void 0 : payload.resource) === null || _c === void 0 ? void 0 : _c.id) !== null && _d !== void 0 ? _d : undefined,
+                amount: (_j = (_f = (_e = payload === null || payload === void 0 ? void 0 : payload.amount) !== null && _e !== void 0 ? _e : payload === null || payload === void 0 ? void 0 : payload.value) !== null && _f !== void 0 ? _f : (_h = (_g = payload === null || payload === void 0 ? void 0 : payload.resource) === null || _g === void 0 ? void 0 : _g.amount) === null || _h === void 0 ? void 0 : _h.value) !== null && _j !== void 0 ? _j : String((_k = payload === null || payload === void 0 ? void 0 : payload.amount) !== null && _k !== void 0 ? _k : '0'),
+                status: (_l = payload === null || payload === void 0 ? void 0 : payload.status) !== null && _l !== void 0 ? _l : ((_o = (_m = payload === null || payload === void 0 ? void 0 : payload.resource) === null || _m === void 0 ? void 0 : _m.status) !== null && _o !== void 0 ? _o : 'pending'),
+                raw: payload,
+            };
+            const p = await this.create(createDto);
+            return p;
         }
         catch (e) {
-            this.logger.error('Failed to update order status after payment', e);
+            this.logger.error('Failed to record generic provider payment', e);
+            throw e;
         }
-        return saved;
     }
 };
 exports.PaymentsService = PaymentsService;

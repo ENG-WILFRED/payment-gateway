@@ -64,16 +64,50 @@ exports.DatabaseModule = DatabaseModule = __decorate([
                     const prefix = readPackagePrefix();
                     const databaseUrl = process.env[`${prefix}_DATABASE_URL`] || process.env.DATABASE_URL || process.env.DB_URL;
                     const schema = process.env[`${prefix}_DB_SCHEMA`] || process.env.DB_SCHEMA || process.env.DB_SCHEMA_NAME || 'public';
-                    const options = {
+                    const models = [require('../../entities/payment.entity').Payment];
+                    if (databaseUrl) {
+                        try {
+                            const url = new URL(databaseUrl);
+                            const username = url.username ? decodeURIComponent(url.username) : undefined;
+                            const password = url.password ? decodeURIComponent(url.password) : undefined;
+                            try {
+                                console.debug('[DatabaseModule] parsed DB url parts', { host: url.hostname, port: url.port, usernameType: typeof username, passwordType: typeof password });
+                            }
+                            catch (e) { }
+                            const host = url.hostname;
+                            const port = url.port ? Number(url.port) : undefined;
+                            const database = url.pathname && url.pathname.startsWith('/') ? url.pathname.slice(1) : url.pathname;
+                            const options = {
+                                dialect: 'postgres',
+                                host,
+                                port,
+                                username: username != null ? String(username) : undefined,
+                                password: password != null ? String(password) : undefined,
+                                database,
+                                models,
+                                define: { schema },
+                                logging: false,
+                                dialectOptions: {},
+                            };
+                            if (process.env.NODE_ENV === 'production') {
+                                options.dialectOptions = { ssl: { rejectUnauthorized: false } };
+                            }
+                            return options;
+                        }
+                        catch (e) {
+                        }
+                    }
+                    const fallback = {
                         dialect: 'postgres',
                         url: databaseUrl,
-                        models: [],
-                        define: {
-                            schema,
-                        },
+                        models,
+                        define: { schema },
                         logging: false,
                     };
-                    return options;
+                    if (process.env.NODE_ENV === 'production') {
+                        fallback.dialectOptions = { ssl: { rejectUnauthorized: false } };
+                    }
+                    return fallback;
                 },
             }),
         ],

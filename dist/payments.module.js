@@ -13,13 +13,15 @@ const payment_entity_1 = require("./entities/payment.entity");
 const payments_service_1 = require("./services/payments.service");
 const payments_controller_1 = require("./controllers/payments.controller");
 const mpesa_service_1 = require("./services/mpesa.service");
+const stripe_service_1 = require("./services/stripe.service");
+const paypal_service_1 = require("./services/paypal.service");
 let PaymentsModule = class PaymentsModule {
 };
 exports.PaymentsModule = PaymentsModule;
 exports.PaymentsModule = PaymentsModule = __decorate([
     (0, common_1.Module)({
         imports: [sequelize_1.SequelizeModule.forFeature([payment_entity_1.Payment])],
-        providers: [payments_service_1.PaymentsService, mpesa_service_1.MpesaService],
+        providers: [payments_service_1.PaymentsService, mpesa_service_1.MpesaService, stripe_service_1.StripeService, paypal_service_1.PaypalService],
         controllers: [payments_controller_1.PaymentsController],
         exports: [payments_service_1.PaymentsService],
     })

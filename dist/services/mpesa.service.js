@@ -33,7 +33,7 @@ let MpesaService = MpesaService_1 = class MpesaService {
             return p.slice(1);
         return p;
     }
-    async initiateStkPush(phone, amount, accountReference, transactionDesc) {
+    async initiateStkPush(phone, amount, callbackUrl, accountReference, transactionDesc) {
         const formatted = this.formatPhone(String(phone));
         const amt = String(amount);
         this.logger.debug('Initiate STK push (live)', { phone: formatted, amount: amt, accountReference, transactionDesc });
@@ -42,7 +42,6 @@ let MpesaService = MpesaService_1 = class MpesaService {
         const consumerSecret = this.readEnv('MPESA_CONSUMER_SECRET');
         const shortcode = this.readEnv('MPESA_SHORTCODE');
         const passkey = this.readEnv('MPESA_PASSKEY');
-        const callbackUrl = this.readEnv('MPESA_CALLBACK_URL');
         const missing = [];
         if (!baseUrl)
             missing.push('MPESA_BASE_URL');
@@ -55,7 +54,7 @@ let MpesaService = MpesaService_1 = class MpesaService {
         if (!passkey)
             missing.push('MPESA_PASSKEY');
         if (!callbackUrl)
-            missing.push('MPESA_CALLBACK_URL');
+            missing.push('callbackUrl (must be provided in request)');
         if (missing.length) {
             const msg = `Missing MPESA configuration: ${missing.join(', ')}`;
             this.logger.error(msg);

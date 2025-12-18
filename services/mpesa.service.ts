@@ -32,12 +32,12 @@ export class MpesaService {
    * - MPESA_CONSUMER_SECRET
    * - MPESA_SHORTCODE
    * - MPESA_PASSKEY
-   * - MPESA_CALLBACK_URL
    *
+   * The callbackUrl parameter should be provided in the request (no longer read from env).
    * It will obtain an access token, build the STK payload, call the Daraja
    * /mpesa/stkpush/v1/processrequest endpoint and return the parsed result.
    */
-  async initiateStkPush(phone: string, amount: string | number, accountReference?: string, transactionDesc?: string) {
+  async initiateStkPush(phone: string, amount: string | number, callbackUrl: string, accountReference?: string, transactionDesc?: string) {
     const formatted = this.formatPhone(String(phone));
     const amt = String(amount);
     this.logger.debug('Initiate STK push (live)', { phone: formatted, amount: amt, accountReference, transactionDesc });
@@ -48,7 +48,6 @@ export class MpesaService {
     const consumerSecret = this.readEnv('MPESA_CONSUMER_SECRET');
     const shortcode = this.readEnv('MPESA_SHORTCODE');
     const passkey = this.readEnv('MPESA_PASSKEY');
-    const callbackUrl = this.readEnv('MPESA_CALLBACK_URL');
 
     const missing = [] as string[];
     if (!baseUrl) missing.push('MPESA_BASE_URL');
@@ -56,7 +55,7 @@ export class MpesaService {
     if (!consumerSecret) missing.push('MPESA_CONSUMER_SECRET');
     if (!shortcode) missing.push('MPESA_SHORTCODE');
     if (!passkey) missing.push('MPESA_PASSKEY');
-    if (!callbackUrl) missing.push('MPESA_CALLBACK_URL');
+    if (!callbackUrl) missing.push('callbackUrl (must be provided in request)');
     if (missing.length) {
       const msg = `Missing MPESA configuration: ${missing.join(', ')}`;
       this.logger.error(msg);

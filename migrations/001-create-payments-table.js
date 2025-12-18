@@ -27,31 +27,23 @@ module.exports = {
         allowNull: false,
         defaultValue: 'pending',
       },
-      paymentMethod: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
       raw: {
         type: Sequelize.JSONB,
         allowNull: true,
       },
-      initiatedCheckoutRequestId: {
+      providerMetadata: {
+        type: Sequelize.JSONB,
+        allowNull: true,
+      },
+      referenceId: {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      initiatedMerchantRequestId: {
+      merchantId: {
         type: Sequelize.STRING,
-        allowNull: true,
-      },
-      orderId: {
-        type: Sequelize.UUID,
         allowNull: true,
       },
       userId: {
-        type: Sequelize.UUID,
-        allowNull: true,
-      },
-      hotelId: {
         type: Sequelize.UUID,
         allowNull: true,
       },
@@ -94,6 +86,12 @@ module.exports = {
         defaultValue: Sequelize.fn('now'),
       },
     });
+
+    // Add indexes for common queries
+    await queryInterface.addIndex('payments', ['merchantId']);
+    await queryInterface.addIndex('payments', ['referenceId']);
+    await queryInterface.addIndex('payments', ['provider', 'status']);
+    await queryInterface.addIndex('payments', ['createdAt']);
   },
 
   async down(queryInterface, Sequelize) {
