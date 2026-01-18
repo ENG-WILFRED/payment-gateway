@@ -11,7 +11,7 @@ const common_1 = require("@nestjs/common");
 const database_module_1 = require("../database/database.module");
 const app_controller_1 = require("../app.controller");
 const app_service_1 = require("../app.service");
-const payments_module_1 = require("../../payments.module");
+const payments_module_1 = require("../payments.module");
 let CoreModule = class CoreModule {
 };
 exports.CoreModule = CoreModule;

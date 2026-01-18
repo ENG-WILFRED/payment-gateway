@@ -51,7 +51,7 @@ async function bootstrap() {
         .setContact('Payment Service Team', 'https://payments.example.com', 'support@payments.example.com')
         .setLicense('MIT', 'https://opensource.org/licenses/MIT')
         .addServer(`http://localhost:${process.env.PORT || 3001}`, 'Development')
-        .addServer('https://api.payments.example.com', 'Production')
+        .addServer('https://payment-gateway-7eta.onrender.com', 'Production')
         .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT', description: 'JWT token for authenticated endpoints' }, 'jwt')
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, swaggerConfig);
